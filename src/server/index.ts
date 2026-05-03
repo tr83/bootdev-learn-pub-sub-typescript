@@ -7,18 +7,6 @@ async function main() {
   const conn = await amqp.connect(rabbitConnString);
   console.log("Peril game server connected to RabbitMQ!");
 
-  const confirmChannel = await conn.createConfirmChannel();
-
-  publishJSON(
-    confirmChannel,
-    ExchangePerilDirect,
-    PauseKey,
-    {
-      PlayingState: {
-        isPaused: true,
-      },
-  });
-
   ["SIGINT", "SIGTERM"].forEach((signal) =>
     process.on(signal, async () => {
       try {
@@ -31,6 +19,16 @@ async function main() {
       }
     }),
   );
+
+  const publishCh = await conn.createConfirmChannel();
+
+  try {
+    await publishJSON(publishCh, ExchangePerilDirect, PauseKey, {
+      isPaused: true,
+    });
+  } catch (err) {
+    console.error("Error publishing message:", err);
+  }
 }
 
 main().catch((err) => {
