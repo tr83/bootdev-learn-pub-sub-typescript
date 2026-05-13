@@ -39,8 +39,9 @@ export function handlerMove(gs: GameState, ch: ConfirmChannel): (move: ArmyMove)
                         );
                     } catch (err) {
                         console.error("Error publishing war recognition:", err);
-                    } finally {
                         return AckType.NackRequeue;
+                    } finally {
+                        return AckType.Ack;
                     }
                 default:
                     return AckType.NackDiscard;
