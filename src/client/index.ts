@@ -1,5 +1,5 @@
 import amqp from "amqplib";
-import { clientWelcome, commandStatus, getInput, printClientHelp, printQuit } from "../internal/gamelogic/gamelogic.js";
+import { clientWelcome, commandStatus, getInput, getMaliciousLog, printClientHelp, printQuit } from "../internal/gamelogic/gamelogic.js";
 import { SimpleQueueType, subscribeJSON } from "../internal/pubsub/consume.js";
 import { ArmyMovesPrefix, ExchangePerilDirect, ExchangePerilTopic, GameLogSlug, PauseKey, WarRecognitionsPrefix } from "../internal/routing/routing.js";
 import { GameState } from "../internal/gamelogic/gamestate.js";
@@ -99,7 +99,23 @@ async function main() {
           printClientHelp();
           break;
         case "spam":
-          console.log("Spamming not allowed yet!");
+          try {
+            if (input.length !== 2 || typeof input[1] === "undefined" || input[1]?.length === 0) {
+              console.log(`Spamming needs 1 argument, got ${input.length - 1}`);
+            }
+            const amount: number = parseInt(input[1] as string);
+
+            for (let i = 0; i < amount; i++) {
+              const logMessage = getMaliciousLog();
+              publishGameLog(
+                publishCh,
+                ExchangePerilTopic,
+                logMessage
+              );
+            }
+          } catch (err) {
+            console.error("Error processing spam command:", err);
+          }
           break;
         case "quit":
           printQuit();

@@ -50,6 +50,7 @@ export async function subscribe<T>(
     deserializer: (data: Buffer) => T,
 ): Promise<void> {
     const [ch, queue] = await declareAndBind(conn, exchange, queueName, routingKey, simpleQueueType);
+    await ch.prefetch(10);
 
     await ch.consume(queue.queue, async (msg) => {
         if (!msg) {
